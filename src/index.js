@@ -22,6 +22,43 @@ const cartItems = [
 ];
 
 
+/**
+ * apply discounts to item
+ * @param item {object} shopping cart item
+ * @returns {object} shopping cart item with disccount type
+ * - discountType {string}
+ * - stackPrice {Number}
+ * - saved {Number}
+ */
+export function applyDiscount(item) {
+  const id = item.id;
+  if (itemDiscounts['3FOR2'].indexOf(id) >= 0) {
+    item.discountType = '3FOR2';
+    item.stackPrice = item.count * item.price;
+    item.count += parseInt(item.count / 2, 10);
+    item.saved = (item.count * item.price) - item.stackPrice;
+    return item;
+  }
+
+  if (itemDiscounts['5OFF'].indexOf(id) >= 0) {
+    item.discountType = '5OFF';
+    const totalPrice = item.count * item.price;
+    item.stackPrice = totalPrice * 0.95;
+    item.saved = totalPrice * 0.05;
+    return item;
+  }
+
+  item.discountType = null;
+  item.stackPrice = item.count * item.price;
+  item.saved = 0;
+  return item;
+}
+
+/**
+ * parse shopping cart items
+ * @param items {Array} shopping cart items
+ * @returns {Array} parsed items
+ */
 export function parseItems(items) {
   const itemsMap = {};
   items.map(item => {
@@ -38,12 +75,16 @@ export function parseItems(items) {
     return item;
   });
 
-  return itemsMap;
+  return Object.keys(itemsMap).map(id => applyDiscount(itemsMap[id]));
 }
 
 export function printTicket(items) {
   let total = 0;
   let saved = 0;
 
-  const items = parseItems(cartItems);
+  const ticketItems = parseItems(items);
+  console.log(ticketItems);
 }
+
+
+printTicket(cartItems);
