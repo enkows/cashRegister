@@ -1,3 +1,5 @@
+'use strict';
+
 const itemsList = {
   ITEM000001: { name: '可口可乐', price: 3, unit: '瓶' },
   ITEM000002: { name: '羽毛球', price: 1, unit: '个' },
@@ -78,12 +80,66 @@ export function parseItems(items) {
   return Object.keys(itemsMap).map(id => applyDiscount(itemsMap[id]));
 }
 
-export function printTicket(items) {
+
+/**
+ * ticket to string
+ * @param items {Array} ticket items
+ * @returns {String} printable ticket content
+ */
+export function ticketToString(items) {
   let total = 0;
   let saved = 0;
 
+  const discountStrings = [];
+  const itemStrings = Object.keys(items).map(id => {
+    const item = items[id];
+
+    total += item.stackPrice;
+    saved += item.saved;
+
+    let str = `名称: ${item.name}, 数量: ${item.count}${item.unit}, 单价: ${item.price.toFixed(2)}(元), 小计: ${item.stackPrice.toFixed(2)}(元)`; // eslint-disable-line
+
+    if (item.discountType === '3FOR2') {
+      const freeCount = parseInt(item.count / 3, 10);
+      discountStrings.push(`名称: ${item.name}, 数量: ${freeCount}${item.unit}`);
+    } else if (item.discountType === '5OFF') {
+      str += ` 节省: ${item.saved.toFixed(2)}(元)`;
+    }
+
+    return str;
+  });
+
+  const seprator = '------------------------';
+  let result = [
+    '***<没钱赚商店>购物清单***',
+    ...itemStrings,
+    seprator,
+  ];
+
+  if (discountStrings.length) {
+    result = [
+      ...result,
+      '买二赠一商品:',
+      ...discountStrings,
+      seprator,
+    ];
+  }
+
+  result = [
+    ...result,
+    `总计: ${total.toFixed(2)}(元)`,
+    `节省: ${saved.toFixed(2)}(元)`,
+    '************************',
+  ];
+
+  return result.join('\n');
+}
+
+export function printTicket(items) {
   const ticketItems = parseItems(items);
-  console.log(ticketItems);
+  const result = ticketToString(ticketItems);
+  console.log(result); // eslint-disable-line
+  return result;
 }
 
 
